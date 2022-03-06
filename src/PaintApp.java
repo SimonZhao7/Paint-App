@@ -6,10 +6,12 @@ import javafx.scene.input.*;
 import javafx.scene.shape.*;
 import javafx.scene.control.*;
 import javafx.geometry.*;
+import javafx.event.*;
 import javafx.scene.*;
 
 
 public class PaintApp extends Application {
+    private VBox primaryBox;
     private Pane drawingPane;
     private Button clearButton;
     private int brushSize;
@@ -21,10 +23,42 @@ public class PaintApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         brushSize = 5;
-        VBox primaryBox = new VBox();
+        primaryBox = new VBox();
         primaryBox.setStyle("-fx-background-color: null;");
         primaryBox.setSpacing(20);
-        primaryBox.setAlignment(Pos.CENTER);
+
+        setPaintScreen();
+
+        Scene scene = new Scene(primaryBox, SCREEN_WIDTH, SCREEN_HEIGHT, Color.BISQUE);
+        primaryStage.setTitle("Paint App");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private void handlePaintSelect(ActionEvent event) {
+        setPaintScreen();
+    }
+
+    private void handleMouseDrag(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
+
+        if (y + brushSize < CANVAS_HEIGHT && y - brushSize > 0) { // Prevent out of bounds
+            Circle newCircle = new Circle(x, y, brushSize);
+            drawingPane.getChildren().add(newCircle); 
+        }
+    }
+
+    private void setPaintScreen() {
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Paint");
+        MenuItem paint = new MenuItem("Home");
+        paint.setOnAction(this::handlePaintSelect);
+        MenuItem settings = new MenuItem("Settings");
+        menu.getItems().add(paint);
+        menu.getItems().add(settings);
+        menuBar.getMenus().add(menu);
+        primaryBox.getChildren().add(menuBar);
 
         drawingPane = new Pane();
         drawingPane.setOnMouseDragged(this::handleMouseDrag);
@@ -39,22 +73,9 @@ public class PaintApp extends Application {
             drawingPane.getChildren().clear();
             drawingPane.getChildren().add(canvas);
         });
-        primaryBox.getChildren().addAll(clearButton);
-
-        Scene scene = new Scene(primaryBox, SCREEN_WIDTH, SCREEN_HEIGHT, Color.BISQUE);
-        primaryStage.setTitle("Paint App");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
-
-    private void handleMouseDrag(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
-
-        if (y + brushSize < CANVAS_HEIGHT && y - brushSize > 0) { // Prevent out of bounds
-            Circle newCircle = new Circle(x, y, brushSize);
-            drawingPane.getChildren().add(newCircle); 
-        }
+        HBox buttonContainer = new HBox(clearButton);
+        buttonContainer.setAlignment(Pos.CENTER);
+        primaryBox.getChildren().addAll(buttonContainer);
     }
 
     public static void main(String[] args) {
