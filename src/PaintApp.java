@@ -18,11 +18,12 @@ public class PaintApp extends Application {
     // Control
     private VBox primaryBox;
     private Pane drawingPane;
-    private Button clearButton, changeBrushSizeButton;
-    private TextField brushSizeInput;
+    private Button clearButton, changeBrushSizeButton, changeBrushColorButton;
+    private TextField brushSizeInput, brushColorInput;
 
     // Settings
     private int brushSize;
+    private Color brushColor;
 
     private List<Node> tempStrokes = new ArrayList<>();
 
@@ -32,7 +33,10 @@ public class PaintApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Initialize Settings
         brushSize = 5;
+        brushColor = Color.BLACK;
+
         primaryBox = new VBox();
         primaryBox.setStyle("-fx-background-color: null;");
         primaryBox.setSpacing(20);
@@ -67,7 +71,7 @@ public class PaintApp extends Application {
         double y = event.getY();
 
         if (y + brushSize < CANVAS_HEIGHT && y - brushSize > 0) { // Prevent out of bounds
-            Circle newCircle = new Circle(x, y, brushSize);
+            Circle newCircle = new Circle(x, y, brushSize, brushColor);
             drawingPane.getChildren().add(newCircle); 
         }
     }
@@ -93,6 +97,23 @@ public class PaintApp extends Application {
                 errorMessage = "Brush size must be a number";
                 throw new IllegalArgumentException();
             }
+        } catch (IllegalArgumentException e) {
+            raiseAlert(AlertType.ERROR, errorMessage);
+        }
+    }
+
+    private void handleBrushColorSubmit(ActionEvent event) {
+        String inputText = brushColorInput.getText();
+        String errorMessage = "Invalid hex code (ex: #000000)";
+        try {
+            if (inputText.isEmpty()) {
+                errorMessage = "Brush color may not be empty";
+                throw new IllegalArgumentException();
+            }
+
+            Color newColor = Color.web(inputText);
+            brushColor = newColor;
+            raiseAlert(AlertType.INFORMATION, "You have successfully changed the brush color.");
         } catch (IllegalArgumentException e) {
             raiseAlert(AlertType.ERROR, errorMessage);
         }
@@ -132,6 +153,18 @@ public class PaintApp extends Application {
         changeBrushSizeButton.setOnAction(this::handleBrushSizeSubmit);
         HBox brushButtonBox = new HBox(changeBrushSizeButton);
         primaryBox.getChildren().add(brushButtonBox);
+
+        brushColorInput = new TextField();
+        brushColorInput.setOnAction(this::handleBrushColorSubmit);
+        Text brushColorLabel = new Text("Brush Color: ");
+        VBox brushColorBox = new VBox(brushColorLabel, brushColorInput);
+        brushColorBox.setSpacing(5);
+        primaryBox.getChildren().add(brushColorBox);
+
+        changeBrushColorButton = new Button("Change Brush Color");
+        changeBrushColorButton.setOnAction(this::handleBrushColorSubmit);
+        HBox brushColorButtonBox = new HBox(changeBrushColorButton);
+        primaryBox.getChildren().add(brushColorButtonBox);
     }
 
     private void setupMenuBar() {
