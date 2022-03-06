@@ -1,4 +1,5 @@
 import javafx.application.*;
+import javafx.collections.*;
 import javafx.stage.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
@@ -8,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.geometry.*;
 import javafx.event.*;
 import javafx.scene.*;
+import java.util.*;
 
 
 public class PaintApp extends Application {
@@ -15,6 +17,8 @@ public class PaintApp extends Application {
     private Pane drawingPane;
     private Button clearButton;
     private int brushSize;
+
+    private List<Node> tempStrokes = new ArrayList<>();
 
     private static final int SCREEN_WIDTH = 1920;
     private static final int SCREEN_HEIGHT = 1080;
@@ -36,6 +40,14 @@ public class PaintApp extends Application {
     }
 
     private void handlePaintSelect(ActionEvent event) {
+        ObservableList<Node> currentStrokes = drawingPane.getChildren();
+        tempStrokes.clear();
+        primaryBox.getChildren().clear();
+        currentStrokes.remove(0);
+        for (Node node : currentStrokes) {
+            tempStrokes.add(node);
+        }
+        currentStrokes.clear();
         setPaintScreen();
     }
 
@@ -67,6 +79,7 @@ public class PaintApp extends Application {
         Rectangle canvas = new Rectangle(SCREEN_WIDTH, CANVAS_HEIGHT);
         canvas.setFill(Color.WHITE);
         drawingPane.getChildren().add(canvas);
+        drawingPane.getChildren().addAll(tempStrokes);
 
         clearButton = new Button("Clear Drawing");
         clearButton.setOnAction(event -> {
