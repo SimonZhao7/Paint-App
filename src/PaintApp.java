@@ -6,16 +6,22 @@ import javafx.scene.paint.*;
 import javafx.scene.input.*;
 import javafx.scene.shape.*;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.*;
 import javafx.geometry.*;
 import javafx.event.*;
 import javafx.scene.*;
+import javafx.scene.text.*;
 import java.util.*;
 
 
 public class PaintApp extends Application {
+    // Control
     private VBox primaryBox;
     private Pane drawingPane;
-    private Button clearButton;
+    private Button clearButton, changeBrushSizeButton;
+    private TextField brushSizeInput;
+
+    // Settings
     private int brushSize;
 
     private List<Node> tempStrokes = new ArrayList<>();
@@ -51,6 +57,11 @@ public class PaintApp extends Application {
         setPaintScreen();
     }
 
+    private void handleSettingsSelect(ActionEvent event) {
+        primaryBox.getChildren().clear();
+        setSettingsScreen();
+    }
+
     private void handleMouseDrag(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
@@ -61,17 +72,34 @@ public class PaintApp extends Application {
         }
     }
 
-    private void setPaintScreen() {
-        MenuBar menuBar = new MenuBar();
-        Menu menu = new Menu("Paint");
-        MenuItem paint = new MenuItem("Home");
-        paint.setOnAction(this::handlePaintSelect);
-        MenuItem settings = new MenuItem("Settings");
-        menu.getItems().add(paint);
-        menu.getItems().add(settings);
-        menuBar.getMenus().add(menu);
-        primaryBox.getChildren().add(menuBar);
+    private void handleBrushSizeSubmit(ActionEvent event) {
+        String inputText = brushSizeInput.getText();
+        String errorMessage = "";
+        try {
+            if (inputText.isEmpty()) {
+                errorMessage = "Brush size may not be empty";
+                throw new IllegalArgumentException();
+            }
 
+            try {
+                int brushSizeInt = Integer.parseInt(inputText);
+                if (brushSizeInt < 1 || brushSizeInt > 100) {
+                    errorMessage = "Brush size must be at least 1px and no greater than 100px";
+                    throw new IllegalArgumentException();
+                }
+                brushSize = brushSizeInt;
+                raiseAlert(AlertType.INFORMATION, "You have successfully changed the brush size.");
+            } catch (NumberFormatException e) {
+                errorMessage = "Brush size must be a number";
+                throw new IllegalArgumentException();
+            }
+        } catch (IllegalArgumentException e) {
+            raiseAlert(AlertType.ERROR, errorMessage);
+        }
+    }
+
+    private void setPaintScreen() {
+        setupMenuBar();
         drawingPane = new Pane();
         drawingPane.setOnMouseDragged(this::handleMouseDrag);
         primaryBox.getChildren().add(drawingPane);
@@ -89,6 +117,42 @@ public class PaintApp extends Application {
         HBox buttonContainer = new HBox(clearButton);
         buttonContainer.setAlignment(Pos.CENTER);
         primaryBox.getChildren().addAll(buttonContainer);
+    }
+
+    private void setSettingsScreen() {
+        setupMenuBar();
+        brushSizeInput = new TextField();
+        brushSizeInput.setOnAction(this::handleBrushSizeSubmit);
+        Text brushSizeLabel = new Text("Brush Size: ");
+        VBox brushSizeBox = new VBox(brushSizeLabel, brushSizeInput);
+        brushSizeBox.setSpacing(5);
+        primaryBox.getChildren().add(brushSizeBox);
+
+        changeBrushSizeButton = new Button("Change Brush Size");
+        changeBrushSizeButton.setOnAction(this::handleBrushSizeSubmit);
+        HBox brushButtonBox = new HBox(changeBrushSizeButton);
+        primaryBox.getChildren().add(brushButtonBox);
+    }
+
+    private void setupMenuBar() {
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Paint");
+        MenuItem paint = new MenuItem("Home");
+        paint.setOnAction(this::handlePaintSelect);
+        MenuItem settings = new MenuItem("Settings");
+        settings.setOnAction(this::handleSettingsSelect);
+        menu.getItems().add(paint);
+        menu.getItems().add(settings);
+        menuBar.getMenus().add(menu);
+        primaryBox.getChildren().add(menuBar);
+    }
+
+    private void raiseAlert(AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(null);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
