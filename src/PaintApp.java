@@ -93,6 +93,7 @@ public class PaintApp extends Application {
                 }
                 brushSize = brushSizeInt;
                 raiseAlert(AlertType.INFORMATION, "You have successfully changed the brush size.");
+                brushSizeInput.clear();
             } catch (NumberFormatException e) {
                 errorMessage = "Brush size must be a number";
                 throw new IllegalArgumentException();
@@ -114,6 +115,7 @@ public class PaintApp extends Application {
             Color newColor = Color.web(inputText);
             brushColor = newColor;
             raiseAlert(AlertType.INFORMATION, "You have successfully changed the brush color.");
+            brushColorInput.clear();
         } catch (IllegalArgumentException e) {
             raiseAlert(AlertType.ERROR, errorMessage);
         }
