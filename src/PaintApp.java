@@ -66,13 +66,19 @@ public class PaintApp extends Application {
         setSettingsScreen();
     }
 
+    private void handleMouseDragEntered(MouseEvent event) {
+        Group newGroup = new Group();
+        drawingPane.getChildren().add(newGroup);
+    }
+
     private void handleMouseDrag(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
 
         if (y + brushSize < CANVAS_HEIGHT && y - brushSize > 0) { // Prevent out of bounds
             Circle newCircle = new Circle(x, y, brushSize, brushColor);
-            drawingPane.getChildren().add(newCircle); 
+            Group currentGroup = (Group) drawingPane.getChildren().get(drawingPane.getChildren().size() - 1);
+            currentGroup.getChildren().add(newCircle);
         }
     }
 
@@ -121,9 +127,17 @@ public class PaintApp extends Application {
         }
     }
 
+    private void handleUndoClick(ActionEvent event) {
+        ObservableList<Node> strokes = drawingPane.getChildren();
+        if (strokes.size() > 1) {
+            strokes.remove(strokes.size() - 1);
+        }
+    }
+
     private void setPaintScreen() {
         setupMenuBar();
         drawingPane = new Pane();
+        drawingPane.setOnMousePressed(this::handleMouseDragEntered);
         drawingPane.setOnMouseDragged(this::handleMouseDrag);
         primaryBox.getChildren().add(drawingPane);
 
@@ -176,8 +190,11 @@ public class PaintApp extends Application {
         paint.setOnAction(this::handlePaintSelect);
         MenuItem settings = new MenuItem("Settings");
         settings.setOnAction(this::handleSettingsSelect);
+        MenuItem undo = new MenuItem("Undo");
+        undo.setOnAction(this::handleUndoClick);
         menu.getItems().add(paint);
         menu.getItems().add(settings);
+        menu.getItems().add(undo);
         menuBar.getMenus().add(menu);
         primaryBox.getChildren().add(menuBar);
     }
